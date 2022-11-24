@@ -1,7 +1,12 @@
 module OliveDefaults
-
+using Olive
+using Toolips
+using ToolipsSession
+using ToolipsMarkdown
+import Olive: OliveExtension, build
+#==
 function dark_mode(c::Connection)
-    darkicon = topbar_icon("darkico", "dark_mode")
+    darkicon::Component{:span} = topbar_icon("darkico", "dark_mode")
     on(c, darkicon, "click") do cm::ComponentModifier
         if cm["olivestyle"]["dark"] == "false"
             set_text!(cm, darkicon, "light_mode")
@@ -13,7 +18,30 @@ function dark_mode(c::Connection)
             cm["olivestyle"] = "dark" => "false"
         end
     end
-    darkicon::Component{:span}
+    OliveExtension{:topbar}([darkicon])
+end
+==#
+module DarkMode
+    import Olive: build, OliveModifier
+    function build(om::OliveModifier, oe::OliveExtension{:darkmode})
+
+    end
+end
+
+module OliveMarkdown
+    import Olive: build, OliveModifier
+    function build(om::OliveModifier, oe::OliverExtension{:olivemarkdown})
+
+    end
+end
+
+module Styler
+    import Olive: build, OliveModifier
+    function build(om::OliveModifier, oe::OliveExtension{:styler})
+
+    end
 end
 
 end # module
+
+{}

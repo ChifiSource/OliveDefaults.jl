@@ -21,27 +21,40 @@ function dark_mode(c::Connection)
     OliveExtension{:topbar}([darkicon])
 end
 ==#
-module DarkMode
-    import Olive: build, OliveModifier
-    function build(om::OliveModifier, oe::OliveExtension{:darkmode})
-
-    end
-end
 
 module OliveMarkdown
     import Olive: build, OliveModifier
-    function build(om::OliveModifier, oe::OliverExtension{:olivemarkdown})
-
-    end
 end
 
 module Styler
+    using Olive
     import Olive: build, OliveModifier
-    function build(om::OliveModifier, oe::OliveExtension{:styler})
+    using ToolipsSession
+    using Toolips
+    function olivesheetdark()
+        st = Olive.ToolipsDefaults.sheet("olivestyle", dark = true)
+        bdy = Style("body", "background-color" => "#360C1F", "transition" => ".8s")
+        st[:children]["div"]["background-color"] = "#DB3080"
+        st[:children]["div"]["color"] = "white"
+        st[:children]["p"]["color"] = "white"
+        st[:children]["h1"]["color"] = "orange"
+        st[:children]["h2"]["color"] = "lightblue"
+        ipc = Olive.inputcell_style()
+        ipc["background-color"] = "#DABCDF"
+        ipc["border-width"] = 0px
+        push!(st, Olive.google_icons(),
+        Olive.iconstyle(), Olive.cellnumber_style(), Olive.hdeps_style(),
+        Olive.usingcell_style(), Olive.outputcell_style(), ipc, bdy, Olive.ipy_style(),
+        Olive.hidden_style(), Olive.jl_style(), Olive.toml_style())
+        st
+    end
 
+    function build(om::OliveModifier, oe::OliveExtension{:styler})
+        if ~(:stylesheet in keys(om.data))
+            om[:stylesheet] = olivesheetdark()
+        end
+        set_children!(om, "olivestyle", om[:stylesheet][:children])
     end
 end
 
 end # module
-
-{}

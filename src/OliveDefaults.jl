@@ -28,7 +28,7 @@ end
 
 module Styler
     using Olive
-    import Olive: build, OliveModifier
+    import Olive: build, OliveModifier, OliveExtension
     using ToolipsSession
     using Toolips
     function olivesheetdark()

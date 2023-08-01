@@ -4,27 +4,6 @@ using Toolips
 using ToolipsSession
 using ToolipsMarkdown
 import Olive: OliveExtension, build
-#==
-function dark_mode(c::Connection)
-    darkicon::Component{:span} = topbar_icon("darkico", "dark_mode")
-    on(c, darkicon, "click") do cm::ComponentModifier
-        if cm["olivestyle"]["dark"] == "false"
-            set_text!(cm, darkicon, "light_mode")
-            set_children!(cm, "olivestyle", olivesheetdark()[:children])
-            cm["olivestyle"] = "dark" => "true"
-        else
-            set_text!(cm, darkicon, "dark_mode")
-            set_children!(cm, "olivestyle", olivesheet()[:children])
-            cm["olivestyle"] = "dark" => "false"
-        end
-    end
-    OliveExtension{:topbar}([darkicon])
-end
-==#
-
-module OliveMarkdown
-    import Olive: build, OliveModifier
-end
 
 module Styler
     using Olive
@@ -49,12 +28,66 @@ module Styler
         st
     end
 
-    function build(om::OliveModifier, oe::OliveExtension{:styler})
+    function build(c::Connection, om::OliveModifier, oe::OliveExtension{:styler})
         if ~(:stylesheet in keys(om.data))
             om[:stylesheet] = olivesheetdark()
         end
         set_children!(om, "olivestyle", om[:stylesheet][:children])
     end
+end # module Styler
+
+module DocBrowser
+using Olive
+using Olive: getname, Project, build_tab, open_project
+import Olive: build
+
+function build(c::Connection, cm::ComponentModifier, cell::Cell{:docmodule},
+    cells::Vector{Cell}, proj::Project{<:Any})
+    mainbox::Component{:section} = section("cellcontainer$(cell.id)")
+    n::Vector{Symbol} = names(cell.outputs, all = true)
+    remove::Vector{Symbol} =  [Symbol("#eval"), Symbol("#include"), :eval, :example, :include, Symbol(string(cell.outputs))]
+    filter!(x -> ~(x in remove) && ~(contains(string(x), "#")), n)
+    selectorbuttons::Vector{Servable} = [begin
+        docdiv = div("doc$name", text = string(name))
+        on(c, docdiv, "click") do cm2::ComponentModifier
+            exp = Meta.parse("""t = eval(Meta.parse("$name")); @doc(t)""")
+            docs = cell.outputs.eval(exp)
+            docum = tmd("docs$name", string(docs))
+            append!(cm2, docdiv, docum)
+        end
+        docdiv
+    end for name in n]
+    mainbox[:children] = vcat([h("$(cell.outputs)", 2, text = string(cell.outputs))], selectorbuttons)
+    mainbox
 end
+
+build(c::Connection, om::OliveModifier, oe::OliveExtension{:docbrowser}) = begin
+    explorericon = topbar_icon("docico", "newspaper")
+    on(c, explorericon, "click") do cm::ComponentModifier
+        mods = [begin 
+            if :mod in keys(p.data)
+                p.data[:mod]
+            else
+                nothing
+            end
+        end for p in c[:OliveCore].open[getname(c)].projects]
+        filter!(x::Any -> ~(isnothing(x)), mods)
+        push!(mods, Olive, olive)
+        cells = Vector{Cell}([Cell(e, "docmodule", "", mod) for (e, mod) in enumerate(mods)])
+        home_direc = Directory(c[:OliveCore].data["home"])
+        projdict::Dict{Symbol, Any} = Dict{Symbol, Any}(:cells => cells,
+        :path => home_direc.uri, :env => home_direc.uri)
+        myproj::Project{:doc} = Project{:doc}(home_direc.uri, projdict)
+        push!(c[:OliveCore].open[getname(c)].projects, myproj)
+        tab::Component{:div} = build_tab(c, "documentation")
+        open_project(c, om, proj, tab)
+    end
+    insert!(om, "rightmenu", 1, explorericon)
+end
+end # module DocBrowser
+
+module AutoComplete
+
+end # module AutoComplete
 
 end # module

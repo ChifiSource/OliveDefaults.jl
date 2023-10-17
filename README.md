@@ -2,13 +2,13 @@
   <img src="https://github.com/ChifiSource/image_dump/blob/main/olive/olive2defaults.png" width="250">
 </div>
 
-Some default extensions for the [Olive](https://github.com/ChifiSource/Olive.jl) notebook editor.
+###### Some default extensions for the [Olive](https://github.com/ChifiSource/Olive.jl) notebook editor.
 ---
 This package contains a number of default extensions. In order to load a given extension, simply use `using` on the module.
 ```julia
 using OliveDefaults: Styler
 ```
-Add the code above to your `olive.jl` home file after adding `OliveDefaults`, for more information checkout [adding extensions](https://github.com/ChifiSource/Olive.jl#adding-extensions).
+Add the code above to your `olive.jl` home file after adding `OliveDefaults`, for more information checkout [installing extensions](https://github.com/ChifiSource/Olive.jl#installing-extensions).
 
 ---
 ###### styler
